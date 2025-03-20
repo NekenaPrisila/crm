@@ -15,7 +15,7 @@
 	<packaging>war</packaging>
 	<description>Crm System</description>
 	<properties>
-		<java.version>19</java.version>
+		<java.version>17</java.version>
 		<sql.name>${SQL_NAME}</sql.name>
 		<sql.password>${SQL_PASSWORD}</sql.password>
 	</properties>
