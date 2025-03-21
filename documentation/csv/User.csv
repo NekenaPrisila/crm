@@ -1,0 +1,5 @@
+email,password,hire_date,created_at,updated_at,username,status,token,is_password_set,roles
+user1@yopmail.com,,2025-03-21,2025-03-21 10:00:00,2025-03-21 10:00:00,user1,active,,1,1
+user2@yopmail.com,,2025-03-22,2025-03-22 11:00:00,2025-03-22 11:00:00,user2,active,,1,2
+user3@yopmail.com,,2025-03-23,2025-03-23 12:00:00,2025-03-23 12:00:00,user3,active,,0,3
+user4@yopmail.com,,2025-03-24,2025-03-24 13:00:00,2025-03-24 13:00:00,user4,active,,1,1

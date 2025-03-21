@@ -1,8 +1,6 @@
 package site.easy.to.build.crm.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -13,11 +11,8 @@ import jakarta.validation.groups.Default;
 import site.easy.to.build.crm.customValidations.user.UniqueEmail;
 import site.easy.to.build.crm.customValidations.user.UniqueUsername;
 
-import java.io.FileReader;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Entity
