@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <div th:insert="~{/general/head.html}"></div>
+    <!-- Custom CSS -->
+    <link th:href="@{/css/bootstrap-wysihtml5.css}" rel="stylesheet">
+    <link th:href="@{/css/style.min.css}" rel="stylesheet">
+    <!-- page css -->
+    <link th:href="@{/css/pages/inbox.css}" rel="stylesheet">
+</head>
+
+<body class="skin-blue fixed-layout">
+    <div class="preloader">
+        <div class="loader">
+            <div class="loader__figure"></div>
+            <p class="loader__label">CRM</p>
+        </div>
+    </div>
+    <div id="main-wrapper">
+        <div th:insert="~{/general/header.html}"></div>
+        <div th:insert="~{/general/left-sidebar.html}"></div>
+        <div class="page-wrapper">
+            <div class="container-fluid">
+                <div th:insert="~{/general/page-titles.html}"></div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 class="card-title">Import Users from CSV</h4>
+                                <form th:action="@{/import/import-users}" method="post" enctype="multipart/form-data">
+                                    <div class="form-group">
+                                        <label for="csvFile">CSV File:</label>
+                                        <input type="file" id="csvFile" name="file" class="form-control" accept=".csv" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Import Users</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div th:insert="~{/general/right-sidebar.html}"></div>
+        <div th:insert="~{/general/footer.html}"></div>
+    </div>
+    <!-- All Jquery -->
+    <script th:inline="javascript">
+        var home = /*[[${home}]]*/ null;
+    </script>
+    <script th:src="@{/js/library/jquery-3.2.1.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/popper.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/bootstrap.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/perfect-scrollbar.jquery.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/waves.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/sidebarmenu.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/sticky-kit.min.js}"></script>
+    <script th:src="@{/js/library/jquery.sparkline.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/custom.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/library/wysihtml5-0.3.0.js}"></script>
+    <script th:src="@{/js/library/bootstrap-wysihtml5.js}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.textarea_editor').wysihtml5();
+        });
+    </script>
+</body>
+</html>
