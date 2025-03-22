@@ -19,6 +19,7 @@ import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.customer.CustomerService;
 import site.easy.to.build.crm.service.expense.ExpenseService;
 import site.easy.to.build.crm.service.settings.TicketEmailSettingsService;
+import site.easy.to.build.crm.service.tauxalerte.TauxAlerteService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.*;
@@ -45,13 +46,15 @@ public class TicketController {
     private final EntityManager entityManager;
     private final BudgetService budgetService;
     private final ExpenseService expenseService;
+    private final TauxAlerteService tauxAlerteService;
 
-
+    
     @Autowired
     public TicketController(TicketService ticketService, AuthenticationUtils authenticationUtils,
             UserService userService, CustomerService customerService,
             TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService,
-            EntityManager entityManager, BudgetService budgetService, ExpenseService expenseService) {
+            EntityManager entityManager, BudgetService budgetService, ExpenseService expenseService,
+            TauxAlerteService tauxAlerteService) {
         this.ticketService = ticketService;
         this.authenticationUtils = authenticationUtils;
         this.userService = userService;
@@ -61,6 +64,7 @@ public class TicketController {
         this.entityManager = entityManager;
         this.budgetService = budgetService;
         this.expenseService = expenseService;
+        this.tauxAlerteService = tauxAlerteService;
     }
     
 
@@ -131,65 +135,99 @@ public class TicketController {
         return "ticket/create-ticket";
     }
 
-    @PostMapping("/create-ticket")
-    public String createTicket(@ModelAttribute("ticket") @Validated Ticket ticket, BindingResult bindingResult, @RequestParam("customerId") int customerId,
-                               @RequestParam Map<String, String> formParams, Model model,
-                               @RequestParam("employeeId") int employeeId, Authentication authentication) {
+    @PostMapping("/check-budget")
+    @ResponseBody
+    public Map<String, Boolean> checkBudget(@RequestParam("customerId") int customerId,
+                                            @RequestParam Map<String, String> formParams) {
+        Map<String, Boolean> response = new HashMap<>();
 
-        int userId = authenticationUtils.getLoggedInUserId(authentication);
-        User manager = userService.findById(userId);
-        if(manager == null) {
-            return "error/500";
-        }
-        if(manager.isInactiveUser()) {
-            return "error/account-inactive";
-        }
-        if(bindingResult.hasErrors()) {
-            List<User> employees = new ArrayList<>();
-            List<Customer> customers;
-
-            if(AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER")) {
-                employees = userService.findAll();
-                customers = customerService.findAll();
-            } else {
-                employees.add(manager);
-                customers = customerService.findByUserId(manager.getId());
-            }
-
-            model.addAttribute("employees",employees);
-            model.addAttribute("customers",customers);
-            return "ticket/create-ticket";
-        }
-
-        User employee = userService.findById(employeeId);
+        // Récupérer le client
         Customer customer = customerService.findByCustomerId(customerId);
-
-        if(employee == null || customer == null) {
-            return "error/500";
-        }
-        if(AuthorizationUtil.hasRole(authentication, "ROLE_EMPLOYEE")) {
-            if(userId != employeeId || customer.getUser().getId() != userId) {
-                return "error/500";
-            }
+        if (customer == null) {
+            response.put("exceedsBudget", false);
+            return response;
         }
 
-        ticket.setCustomer(customer);
-        ticket.setManager(manager);
-        ticket.setEmployee(employee);
-        ticket.setCreatedAt(LocalDateTime.now());
-
-        for (Expense expense : ticket.getExpenses()) {
-            expense.setTicket(ticket);
-            expense.setCustomer(customer);
-        }
-
-        Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
+        // Calculer le montant total des dépenses existantes
         Double montantExpensesCustomer = expenseService.getTotalExpenseByCustomer(customer);
 
-        ticketService.save(ticket);
+        // Calculer le montant total des nouvelles dépenses
+        Double sumNewExpense = 0.0;
+        for (Map.Entry<String, String> entry : formParams.entrySet()) {
+            if (entry.getKey().startsWith("expenses[") && entry.getKey().contains("amount")) {
+                sumNewExpense += Double.parseDouble(entry.getValue());
+            }
+        }
 
-        return "redirect:/employee/ticket/assigned-tickets";
+        // Calculer le budget total du client
+        Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
+
+        // Vérifier si le montant dépasse le budget
+        response.put("exceedsBudget", (montantExpensesCustomer + sumNewExpense) > montantBudgetsCustomer);
+        return response;
     }
+
+@PostMapping("/create-ticket")
+public String createTicket(@ModelAttribute("ticket") @Validated Ticket ticket, BindingResult bindingResult,
+                          @RequestParam("customerId") int customerId,
+                          @RequestParam Map<String, String> formParams, Model model,
+                          @RequestParam("employeeId") int employeeId, Authentication authentication) {
+
+    // Vérifications existantes (manager, employé, etc.)
+    int userId = authenticationUtils.getLoggedInUserId(authentication);
+    User manager = userService.findById(userId);
+    if (manager == null || manager.isInactiveUser()) {
+        return "error/500";
+    }
+
+    // Vérifier les erreurs de validation
+    if (bindingResult.hasErrors()) {
+        List<User> employees = AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER") ? userService.findAll() : List.of(manager);
+        List<Customer> customers = AuthorizationUtil.hasRole(authentication, "ROLE_MANAGER") ? customerService.findAll() : customerService.findByUserId(manager.getId());
+        model.addAttribute("employees", employees);
+        model.addAttribute("customers", customers);
+        return "ticket/create-ticket";
+    }
+
+    // Récupérer l'employé et le client
+    User employee = userService.findById(employeeId);
+    Customer customer = customerService.findByCustomerId(customerId);
+    if (employee == null || customer == null) {
+        return "error/500";
+    }
+
+    // Vérifier les autorisations pour les employés
+    if (AuthorizationUtil.hasRole(authentication, "ROLE_EMPLOYEE") && (userId != employeeId || customer.getUser().getId() != userId)) {
+        return "error/500";
+    }
+
+    // Configurer le ticket
+    ticket.setCustomer(customer);
+    ticket.setManager(manager);
+    ticket.setEmployee(employee);
+    ticket.setCreatedAt(LocalDateTime.now());
+
+    // Configurer les dépenses
+    for (Expense expense : ticket.getExpenses()) {
+        expense.setTicket(ticket);
+        expense.setCustomer(customer);
+    }
+
+    // Calculer le montant total des dépenses existantes
+    Double montantExpensesCustomer = expenseService.getTotalExpenseByCustomer(customer);
+    // Calculer le budget total du client
+    Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
+
+    TauxAlerte taux =  tauxAlerteService.getLastTauxAlerte();
+    if (taux!=null) {
+        
+    }
+
+    // Enregistrer le ticket
+    ticketService.save(ticket);
+
+    return "redirect:/employee/ticket/assigned-tickets";
+}
 
     @GetMapping("/update-ticket/{id}")
     public String showTicketUpdatingForm(Model model, @PathVariable("id") int id, Authentication authentication) {
