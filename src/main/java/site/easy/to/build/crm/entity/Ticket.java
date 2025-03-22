@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Pattern;
 import org.hibernate.mapping.ToOne;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "trigger_ticket")
@@ -47,6 +49,9 @@ public class Ticket {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Expense> expenses = new ArrayList<>();
 
     public Ticket() {
     }
