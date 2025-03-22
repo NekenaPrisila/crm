@@ -1,0 +1,9 @@
+- <!-- <p class="m-t-30" th:utext="${profile?.description}"></p> -->
+    comment description dans manager/show-user.html
+    no attribut "description" dans UserProfile
+
+- <td>
+      <span th:each="role, iterStat : ${profile.roles}" th:text="${role.name}"></span>
+      <span th:if="${profile.roles.isEmpty()}">Aucun rôle</span>
+  </td>
+    list roles dans manager/all-users.html
