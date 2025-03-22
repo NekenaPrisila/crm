@@ -267,9 +267,9 @@ CREATE TABLE google_drive_file(
 
 CREATE TABLE budget(
    id INT AUTO_INCREMENT,
+   description TEXT,
    name VARCHAR(255)  DEFAULT NULL,
    total_amount DECIMAL(15,2)  ,
-   current_amount DECIMAL(15,2)   DEFAULT NULL,
    customer_id INT unsigned NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(customer_id) REFERENCES customer(customer_id)
@@ -279,13 +279,20 @@ CREATE TABLE expense(
    id INT AUTO_INCREMENT,
    amount DECIMAL(15,2)  ,
    description TEXT,
+   customer_id INT unsigned NOT NULL,
    ticket_id INT unsigned,
    lead_id INT unsigned,
-   id_budget INT NOT NULL,
    PRIMARY KEY(id),
+   FOREIGN KEY(customer_id) REFERENCES customer(customer_id),
    FOREIGN KEY(ticket_id) REFERENCES trigger_ticket(ticket_id),
-   FOREIGN KEY(lead_id) REFERENCES trigger_lead(lead_id),
-   FOREIGN KEY(id_budget) REFERENCES budget(id)
+   FOREIGN KEY(lead_id) REFERENCES trigger_lead(lead_id)
+);
+
+CREATE TABLE taux_alerte(
+   id INT AUTO_INCREMENT,
+   taux DECIMAL(5,2)   NOT NULL,
+   date_changement DATETIME NOT NULL,
+   PRIMARY KEY(id)
 );
 
 CREATE TABLE user_roles(

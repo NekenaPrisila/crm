@@ -52,8 +52,8 @@ public class BudgetController {
         return "budget/create-budget"; // Thymeleaf template name
     }
 
-    @PostMapping("/{budgetId}/expenses")
-    public Expense addExpenseToBudget(@PathVariable Long budgetId, @RequestBody Expense expense) {
-        return budgetService.addExpenseToBudget(budgetId, expense);
-    }
+    // @PostMapping("/{budgetId}/expenses")
+    // public Expense addExpenseToBudget(@PathVariable Long budgetId, @RequestBody Expense expense) {
+    //     return budgetService.addExpenseToBudget(budgetId, expense);
+    // }
 }

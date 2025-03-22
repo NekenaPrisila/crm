@@ -12,6 +12,10 @@ public class Expense {
     private String description; // Description de la dépense
 
     @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
+    @ManyToOne
     @JoinColumn(name = "ticket_id")
     private Ticket ticket; // Relation avec un ticket
 
@@ -19,19 +23,14 @@ public class Expense {
     @JoinColumn(name = "lead_id")
     private Lead lead; // Relation avec un lead
 
-    @ManyToOne
-    @JoinColumn(name = "budget_id")
-    private Budget budget; // Relation avec un budget
-
     public Expense() {
     }
 
-    public Expense(Double amount, String description, Ticket ticket, Lead lead, Budget budget) {
+    public Expense(Double amount, String description, Ticket ticket, Lead lead) {
         this.amount = amount;
         this.description = description;
         this.ticket = ticket;
         this.lead = lead;
-        this.budget = budget;
     }
 
     public Long getId() {
@@ -72,14 +71,6 @@ public class Expense {
 
     public void setLead(Lead lead) {
         this.lead = lead;
-    }
-
-    public Budget getBudget() {
-        return budget;
-    }
-
-    public void setBudget(Budget budget) {
-        this.budget = budget;
     }
 
 }
