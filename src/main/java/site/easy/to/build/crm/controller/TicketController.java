@@ -15,7 +15,9 @@ import site.easy.to.build.crm.entity.*;
 import site.easy.to.build.crm.entity.settings.TicketEmailSettings;
 import site.easy.to.build.crm.google.service.acess.GoogleAccessService;
 import site.easy.to.build.crm.google.service.gmail.GoogleGmailApiService;
+import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.expense.ExpenseService;
 import site.easy.to.build.crm.service.settings.TicketEmailSettingsService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.user.UserService;
@@ -41,11 +43,15 @@ public class TicketController {
     private final TicketEmailSettingsService ticketEmailSettingsService;
     private final GoogleGmailApiService googleGmailApiService;
     private final EntityManager entityManager;
+    private final BudgetService budgetService;
+    private final ExpenseService expenseService;
 
 
     @Autowired
-    public TicketController(TicketService ticketService, AuthenticationUtils authenticationUtils, UserService userService, CustomerService customerService,
-                            TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager) {
+    public TicketController(TicketService ticketService, AuthenticationUtils authenticationUtils,
+            UserService userService, CustomerService customerService,
+            TicketEmailSettingsService ticketEmailSettingsService, GoogleGmailApiService googleGmailApiService,
+            EntityManager entityManager, BudgetService budgetService, ExpenseService expenseService) {
         this.ticketService = ticketService;
         this.authenticationUtils = authenticationUtils;
         this.userService = userService;
@@ -53,7 +59,10 @@ public class TicketController {
         this.ticketEmailSettingsService = ticketEmailSettingsService;
         this.googleGmailApiService = googleGmailApiService;
         this.entityManager = entityManager;
+        this.budgetService = budgetService;
+        this.expenseService = expenseService;
     }
+    
 
     @GetMapping("/show-ticket/{id}")
     public String showTicketDetails(@PathVariable("id") int id, Model model, Authentication authentication) {
@@ -173,6 +182,9 @@ public class TicketController {
             expense.setTicket(ticket);
             expense.setCustomer(customer);
         }
+
+        Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
+        Double montantExpensesCustomer = expenseService.getTotalExpenseByCustomer(customer);
 
         ticketService.save(ticket);
 
