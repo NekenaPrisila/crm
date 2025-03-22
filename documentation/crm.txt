@@ -270,7 +270,7 @@ CREATE TABLE budget(
    name VARCHAR(255)  DEFAULT NULL,
    total_amount DECIMAL(15,2)  ,
    current_amount DECIMAL(15,2)   DEFAULT NULL,
-   customer_id INT unsigned NOT NULL,
+   customer_id INT NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(customer_id) REFERENCES customer(customer_id)
 );
@@ -279,8 +279,8 @@ CREATE TABLE expense(
    id INT AUTO_INCREMENT,
    amount DECIMAL(15,2)  ,
    description TEXT,
-   ticket_id INT unsigned,
-   lead_id INT unsigned,
+   ticket_id INT,
+   lead_id INT,
    id_budget INT NOT NULL,
    PRIMARY KEY(id),
    FOREIGN KEY(ticket_id) REFERENCES trigger_ticket(ticket_id),
