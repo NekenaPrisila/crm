@@ -127,7 +127,7 @@ CREATE TABLE trigger_lead(
    id_user INT,
    PRIMARY KEY(id),
    UNIQUE(meeting_id),
-   FOREIGN KEY(id_employee) REFERENCES employee(id),
+   FOREIGN KEY(id_employee) REFERENCES users(id),
    FOREIGN KEY(id_customer) REFERENCES customer(id),
    FOREIGN KEY(id_user) REFERENCES users(id)
 );
