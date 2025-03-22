@@ -169,6 +169,11 @@ public class TicketController {
         ticket.setEmployee(employee);
         ticket.setCreatedAt(LocalDateTime.now());
 
+        for (Expense expense : ticket.getExpenses()) {
+            expense.setTicket(ticket);
+            expense.setCustomer(customer);
+        }
+
         ticketService.save(ticket);
 
         return "redirect:/employee/ticket/assigned-tickets";

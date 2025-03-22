@@ -73,4 +73,12 @@ public class Expense {
         this.lead = lead;
     }
 
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
 }

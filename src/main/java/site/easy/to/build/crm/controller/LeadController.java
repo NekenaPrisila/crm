@@ -193,6 +193,11 @@ public class LeadController {
         lead.setGoogleDriveFolderId(folderId);
         lead.setCreatedAt(LocalDateTime.now());
 
+        for (Expense expense : lead.getExpenses()) {
+            expense.setLead(lead);
+            expense.setCustomer(customer);
+        }
+
         ObjectMapper objectMapper = new ObjectMapper();
         List<Attachment> allFiles = objectMapper.readValue(files, new TypeReference<List<Attachment>>() {
         });
