@@ -94,7 +94,10 @@
                                         <td th:text="${profile.email}"></td>
                                         <td th:text="${profile.username}"></td>
                                         <td th:text="${profile.status}"></td>
-                                        <td th:text="${profile.roles[0].name}"></td>
+                                        <td>
+                                            <span th:each="role, iterStat : ${profile.roles}" th:text="${role.name}"></span>
+                                            <span th:if="${profile.roles.isEmpty()}">Aucun rôle</span>
+                                        </td>
                                         <td><a th:href="${home + 'manager/show-user/' + profile.id}"><i class="fas fa-eye"></i></a></td>
                                         <td><a th:href="${home + 'manager/update-user/' + profile.id}"><i class="fas fa-edit"></i></a></td>
                                     </tr>

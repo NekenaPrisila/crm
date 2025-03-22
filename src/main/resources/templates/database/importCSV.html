@@ -33,11 +33,13 @@
                                         <label for="csvFile">CSV File:</label>
                                         <input type="file" id="csvFile" name="file" class="form-control" accept=".csv" required>
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Import Users</button>
+                                    <button type="submit" class="btn btn-primary">Import CSV</button>
                                 </form>
-
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
                                 <!-- Bouton pour réinitialiser la base de données -->
-                                <hr>
                                 <h4 class="card-title">Database Management</h4>
                                 <form th:action="@{/database/reset-database}" method="post" onsubmit="return confirm('Are you sure you want to reset the database? This action cannot be undone.');">
                                     <button type="submit" class="btn btn-danger">Reset Database</button>
