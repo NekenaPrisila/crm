@@ -180,6 +180,9 @@ public class LeadController {
     
         // Calculer le montant total des dépenses existantes
         Double montantExpensesCustomer = expenseService.getTotalExpenseByCustomer(customer);
+        if (montantExpensesCustomer == null){
+            montantExpensesCustomer = 0.0;
+        }
     
         // Calculer le montant total des nouvelles dépenses
         Double sumNewExpense = 0.0;
@@ -191,6 +194,9 @@ public class LeadController {
     
         // Calculer le budget total du client
         Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
+        if (montantBudgetsCustomer == null){
+            montantBudgetsCustomer = 0.0;
+        }
     
         TauxAlerte taux = tauxAlerteService.getLastTauxAlerte();
     
