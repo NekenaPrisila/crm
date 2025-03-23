@@ -25,12 +25,15 @@ import site.easy.to.build.crm.google.service.acess.GoogleAccessService;
 import site.easy.to.build.crm.google.service.calendar.GoogleCalendarApiService;
 import site.easy.to.build.crm.google.service.drive.GoogleDriveApiService;
 import site.easy.to.build.crm.google.service.gmail.GoogleGmailApiService;
+import site.easy.to.build.crm.service.budget.BudgetService;
 import site.easy.to.build.crm.service.customer.CustomerService;
 import site.easy.to.build.crm.service.drive.GoogleDriveFileService;
+import site.easy.to.build.crm.service.expense.ExpenseService;
 import site.easy.to.build.crm.service.file.FileService;
 import site.easy.to.build.crm.service.lead.LeadActionService;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.settings.LeadEmailSettingsService;
+import site.easy.to.build.crm.service.tauxalerte.TauxAlerteService;
 import site.easy.to.build.crm.service.user.UserService;
 import site.easy.to.build.crm.util.*;
 
@@ -60,12 +63,19 @@ public class LeadController {
     private final LeadEmailSettingsService leadEmailSettingsService;
     private final GoogleGmailApiService googleGmailApiService;
     private final EntityManager entityManager;
+    private final BudgetService budgetService;
+    private final ExpenseService expenseService;
+    private final TauxAlerteService tauxAlerteService;
 
+    
     @Autowired
-    public LeadController(LeadService leadService, AuthenticationUtils authenticationUtils, UserService userService, CustomerService customerService,
-                          LeadActionService leadActionService, GoogleCalendarApiService googleCalendarApiService, FileService fileService,
-                          GoogleDriveApiService googleDriveApiService, GoogleDriveFileService googleDriveFileService, FileUtil fileUtil,
-                          LeadEmailSettingsService leadEmailSettingsService, GoogleGmailApiService googleGmailApiService, EntityManager entityManager) {
+    public LeadController(LeadService leadService, AuthenticationUtils authenticationUtils, UserService userService,
+            CustomerService customerService, LeadActionService leadActionService,
+            GoogleCalendarApiService googleCalendarApiService, FileService fileService,
+            GoogleDriveApiService googleDriveApiService, GoogleDriveFileService googleDriveFileService,
+            FileUtil fileUtil, LeadEmailSettingsService leadEmailSettingsService,
+            GoogleGmailApiService googleGmailApiService, EntityManager entityManager, BudgetService budgetService,
+            ExpenseService expenseService, TauxAlerteService tauxAlerteService) {
         this.leadService = leadService;
         this.authenticationUtils = authenticationUtils;
         this.userService = userService;
@@ -79,6 +89,9 @@ public class LeadController {
         this.leadEmailSettingsService = leadEmailSettingsService;
         this.googleGmailApiService = googleGmailApiService;
         this.entityManager = entityManager;
+        this.budgetService = budgetService;
+        this.expenseService = expenseService;
+        this.tauxAlerteService = tauxAlerteService;
     }
 
     @GetMapping("/show/{id}")
@@ -150,6 +163,56 @@ public class LeadController {
     public ResponseEntity<Void> uploadAttachment() {
         // Simulate a successful file upload by returning a 200 OK response
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/check-budget")
+    @ResponseBody
+    public Map<String, Object> checkBudget(@RequestParam("customerId") int customerId,
+                                          @RequestParam Map<String, String> formParams) {
+        Map<String, Object> response = new HashMap<>();
+    
+        // Récupérer le client
+        Customer customer = customerService.findByCustomerId(customerId);
+        if (customer == null) {
+            response.put("exceedsBudget", false);
+            return response;
+        }
+    
+        // Calculer le montant total des dépenses existantes
+        Double montantExpensesCustomer = expenseService.getTotalExpenseByCustomer(customer);
+    
+        // Calculer le montant total des nouvelles dépenses
+        Double sumNewExpense = 0.0;
+        for (Map.Entry<String, String> entry : formParams.entrySet()) {
+            if (entry.getKey().startsWith("expenses[") && entry.getKey().contains("amount")) {
+                sumNewExpense += Double.parseDouble(entry.getValue());
+            }
+        }
+    
+        // Calculer le budget total du client
+        Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
+    
+        TauxAlerte taux = tauxAlerteService.getLastTauxAlerte();
+    
+        // Vérifier si le montant dépasse le budget
+        if ((montantExpensesCustomer + sumNewExpense) > montantBudgetsCustomer) {
+            response.put("exceedsBudget", true);
+            response.put("message", "Le montant des dépenses dépasse le budget du client.");
+            return response;
+        }
+
+        if (taux != null) {
+            Double tauxAlerte = (montantBudgetsCustomer * taux.getTaux()) / 100;
+
+            if ((montantExpensesCustomer + sumNewExpense) > tauxAlerte) {
+                response.put("exceedsBudgettaux", true);
+                response.put("message", "Le montant des dépenses dépasse le taux d'alerte du budget de " + taux.getTaux() + "%");
+                return response;
+            }
+        }
+    
+        response.put("exceedsBudget", false);
+        return response;
     }
 
     @GetMapping("/create")

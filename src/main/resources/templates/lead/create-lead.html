@@ -12,6 +12,9 @@
 <!-- page css -->
 <link th:href="@{/css/pages/inbox.css}" rel="stylesheet">
 
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 <!--[if lt IE 9]>
@@ -71,7 +74,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h4 class="card-title">Create New Lead</h4>
-                            <form th:object="${lead}" th:action="@{/employee/lead/create}" enctype="multipart/form-data" id="email-form" method="post">
+                            <form th:object="${lead}" th:action="@{/employee/lead/create}" enctype="multipart/form-data" id="leadForm" method="post">
                                 <input type="hidden" id="allFiles" name="allFiles">
 
                                 <!-- Name -->
@@ -128,7 +131,7 @@
                                     <div class="expense-entry">
                                         <label class="m-t-20" for="expenseAmount">Amount:</label>
                                         <div class="input-group">
-                                            <input type="number" step="0.01" name="expenses[0].amount" class="form-control" placeholder="Enter amount">
+                                            <input type="number" step="0.01" name="expenses[0].amount" class="form-control expense-amount" placeholder="Enter amount">
                                         </div>
 
                                         <label class="m-t-20" for="expenseDescription">Description:</label>
@@ -139,6 +142,12 @@
                                 </div>
                                 <button type="button" id="add-expense" class="btn btn-secondary m-t-20">Add Expense</button>
                                 <br>
+                                <br>
+                                <!-- Error Message for Budget -->
+                                <div id="budget-error-message" class="alert alert-danger" style="display: none;"></div>
+
+                                <!-- Hidden Field for User Confirmation -->
+                                <input type="hidden" id="userConfirmation" name="userConfirmation" value="false">
                                 
                                 <!-- Attachment -->
                                 <label class="m-t-20"><i class="ti-link"></i> Attachment</label>
@@ -238,6 +247,8 @@
 <script th:src="@{/js/library/wysihtml5-0.3.0.js}"></script>
 <script th:src="@{/js/library/bootstrap-wysihtml5.js}"></script>
 <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     Dropzone.autoDiscover = false;
     $(document).ready(function() {
@@ -261,6 +272,66 @@
             `;
             $('#expenses-container').append(newExpenseEntry);
             expenseIndex++;
+        });
+
+        // Check budget on amount input
+        $(document).on('input', '.expense-amount', function() {
+            const customerId = $('#customerId').val();
+            const formData = new FormData(document.getElementById('leadForm'));
+
+            fetch('/employee/lead/check-budget', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exceedsBudget) {
+                    Swal.fire({
+                        title: 'Attention !',
+                        text: "Le montant des dépenses dépasse le budget du client. Voulez-vous vraiment continuer ?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Oui, continuer',
+                        cancelButtonText: 'Annuler'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById('userConfirmation').value = 'true';
+                        } else {
+                            document.getElementById('userConfirmation').value = 'false';
+                        }
+                    });
+                } else if (data.exceedsBudgettaux) {
+                    if (data.message) {
+                        $('#budget-error-message').text(data.message).show();
+                    }
+                }else {
+                    $('#budget-error-message').hide();
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la vérification du budget:', error);
+            });
+        });
+
+        // Intercept form submission
+        document.getElementById('leadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (document.getElementById('userConfirmation').value === 'true') {
+                this.submit();
+            } else {
+                Swal.fire({
+                    title: 'Erreur',
+                    text: "Vous devez confirmer la création du lead si le budget est dépassé.",
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
         });
     });
 </script>

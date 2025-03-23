@@ -137,20 +137,20 @@ public class TicketController {
 
     @PostMapping("/check-budget")
     @ResponseBody
-    public Map<String, Boolean> checkBudget(@RequestParam("customerId") int customerId,
-                                            @RequestParam Map<String, String> formParams) {
-        Map<String, Boolean> response = new HashMap<>();
-
+    public Map<String, Object> checkBudget(@RequestParam("customerId") int customerId,
+                                          @RequestParam Map<String, String> formParams) {
+        Map<String, Object> response = new HashMap<>();
+    
         // Récupérer le client
         Customer customer = customerService.findByCustomerId(customerId);
         if (customer == null) {
             response.put("exceedsBudget", false);
             return response;
         }
-
+    
         // Calculer le montant total des dépenses existantes
         Double montantExpensesCustomer = expenseService.getTotalExpenseByCustomer(customer);
-
+    
         // Calculer le montant total des nouvelles dépenses
         Double sumNewExpense = 0.0;
         for (Map.Entry<String, String> entry : formParams.entrySet()) {
@@ -158,12 +158,30 @@ public class TicketController {
                 sumNewExpense += Double.parseDouble(entry.getValue());
             }
         }
-
+    
         // Calculer le budget total du client
         Double montantBudgetsCustomer = budgetService.getTotalBudgetByCustomer(customer);
-
+    
+        TauxAlerte taux = tauxAlerteService.getLastTauxAlerte();
+    
         // Vérifier si le montant dépasse le budget
-        response.put("exceedsBudget", (montantExpensesCustomer + sumNewExpense) > montantBudgetsCustomer);
+        if ((montantExpensesCustomer + sumNewExpense) > montantBudgetsCustomer) {
+            response.put("exceedsBudget", true);
+            response.put("message", "Le montant des dépenses dépasse le budget du client.");
+            return response;
+        }
+
+        if (taux != null) {
+            Double tauxAlerte = (montantBudgetsCustomer * taux.getTaux()) / 100;
+
+            if ((montantExpensesCustomer + sumNewExpense) > tauxAlerte) {
+                response.put("exceedsBudgettaux", true);
+                response.put("message", "Le montant des dépenses dépasse le taux d'alerte du budget de " + taux.getTaux() + "%");
+                return response;
+            }
+        }
+    
+        response.put("exceedsBudget", false);
         return response;
     }
 
