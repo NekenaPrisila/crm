@@ -24,3 +24,4 @@ public interface CustomerService {
     long countByUserId(int userId);
 
 }
+ 

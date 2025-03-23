@@ -24,12 +24,15 @@ public class DatabaseResetService {
         jdbcTemplate.execute("TRUNCATE TABLE lead_action");
         jdbcTemplate.execute("TRUNCATE TABLE contract_settings");
         jdbcTemplate.execute("TRUNCATE TABLE trigger_contract");
+        jdbcTemplate.execute("TRUNCATE TABLE expense");
         jdbcTemplate.execute("TRUNCATE TABLE trigger_ticket");
         jdbcTemplate.execute("TRUNCATE TABLE trigger_lead");
         jdbcTemplate.execute("TRUNCATE TABLE customer");
         jdbcTemplate.execute("TRUNCATE TABLE customer_login_info");
         jdbcTemplate.execute("TRUNCATE TABLE email_template");
         jdbcTemplate.execute("TRUNCATE TABLE employee");
+        jdbcTemplate.execute("TRUNCATE TABLE budget");
+        // jdbcTemplate.execute("TRUNCATE TABLE taux_alerte");
         // jdbcTemplate.execute("TRUNCATE TABLE user_roles");
         // jdbcTemplate.execute("TRUNCATE TABLE roles");
         // jdbcTemplate.execute("TRUNCATE TABLE user_profile");

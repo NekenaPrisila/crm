@@ -1,7 +1,8 @@
 package site.easy.to.build.crm.entity;
 
 import jakarta.persistence.*;
-import java.util.Date;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "taux_alerte")
@@ -16,13 +17,13 @@ public class TauxAlerte {
 
     @Column(name = "date_changement", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dateChangement;
+    private LocalDateTime dateChangement;
 
     // Constructeurs
     public TauxAlerte() {
     }
 
-    public TauxAlerte(Double taux, Date dateChangement) {
+    public TauxAlerte(Double taux, LocalDateTime dateChangement) {
         this.taux = taux;
         this.dateChangement = dateChangement;
     }
@@ -44,11 +45,11 @@ public class TauxAlerte {
         this.taux = taux;
     }
 
-    public Date getDateChangement() {
+    public LocalDateTime getDateChangement() {
         return dateChangement;
     }
 
-    public void setDateChangement(Date dateChangement) {
+    public void setDateChangement(LocalDateTime dateChangement) {
         this.dateChangement = dateChangement;
     }
 

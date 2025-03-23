@@ -55,11 +55,12 @@ public class SecurityConfig {
 
         http.csrf((csrf) -> csrf
                 .csrfTokenRepository(httpSessionCsrfTokenRepository)
+                .ignoringRequestMatchers("/api/**") // Désactiver CSRF pour les API
         );
 
         http.
                 authorizeHttpRequests((authorize) -> authorize
-
+                        .requestMatchers("/api/**").permitAll() // Autoriser les requêtes API
                         .requestMatchers("/register/**").permitAll()
                         .requestMatchers("/set-employee-password/**").permitAll()
                         .requestMatchers("/change-password/**").permitAll()
@@ -146,4 +147,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
 }
