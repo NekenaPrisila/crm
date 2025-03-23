@@ -82,6 +82,14 @@
                                     <span class="text-danger font-weight-bold" th:if="${#fields.hasErrors('name')}" th:errors="*{name}" autocomplete="off"></span>
                                 </div>
 
+                                <label class="m-t-20" for="description">Description:</label>
+                                <div class="input-group">
+                                    <textarea class="textarea_editor form-control" id="description" rows="15" placeholder="Enter text ..." th:field="*{description}"></textarea>
+                                </div>
+                                <div class="input-group">
+                                    <span class="text-danger font-weight-bold" th:if="${#fields.hasErrors('description')}" th:errors="*{description}" autocomplete="off"></span>
+                                </div>
+
                                 <!-- Total Amount Field -->
                                 <label class="m-t-20" for="totalAmount">Total Amount:</label>
                                 <div class="input-group">
@@ -89,15 +97,6 @@
                                 </div>
                                 <div class="input-group">
                                     <span class="text-danger font-weight-bold" th:if="${#fields.hasErrors('totalAmount')}" th:errors="*{totalAmount}" autocomplete="off"></span>
-                                </div>
-
-                                <!-- Current Amount Field -->
-                                <label class="m-t-20" for="currentAmount">Current Amount:</label>
-                                <div class="input-group">
-                                    <input type="number" step="0.01" id="currentAmount" th:field="*{currentAmount}" class="form-control">
-                                </div>
-                                <div class="input-group">
-                                    <span class="text-danger font-weight-bold" th:if="${#fields.hasErrors('currentAmount')}" th:errors="*{currentAmount}" autocomplete="off"></span>
                                 </div>
 
                                 <!-- Customer Dropdown -->
