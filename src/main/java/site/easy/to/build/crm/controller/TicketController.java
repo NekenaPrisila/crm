@@ -157,9 +157,13 @@ public class TicketController {
         // Calculer le montant total des nouvelles dépenses
         Double sumNewExpense = 0.0;
         for (Map.Entry<String, String> entry : formParams.entrySet()) {
-            if (entry.getKey().startsWith("expenses[") && entry.getKey().contains("amount")) {
+            if (entry.getKey().startsWith("expenses[") && entry.getKey().contains("amount") && entry.getValue()!=null && !entry.getValue().isEmpty()) {
                 sumNewExpense += Double.parseDouble(entry.getValue());
             }
+        }
+
+        if (sumNewExpense == 0.0) {
+            return response;
         }
     
         // Calculer le budget total du client

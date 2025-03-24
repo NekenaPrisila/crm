@@ -1,5 +1,7 @@
 package site.easy.to.build.crm.entity.DTO;
 
+import java.util.List;
+
 public class DTOTicket {
     private int id;
     private String subject;
@@ -7,20 +9,21 @@ public class DTOTicket {
     private String status;
     private String customer;
     private String assignedEmployee;
-    private double expense;
+    private List<DTOExpense> expenseList;
 
-    // Constructeurs
-    public DTOTicket() {
-    }
-
-    public DTOTicket(int id, String subject, String priority, String status, String customer, String assignedEmployee, double expense) {
+    public DTOTicket(int id, String subject, String priority, String status, String customer, String assignedEmployee,
+            List<DTOExpense> expenseList) {
         this.id = id;
         this.subject = subject;
         this.priority = priority;
         this.status = status;
         this.customer = customer;
         this.assignedEmployee = assignedEmployee;
-        this.expense = expense;
+        this.expenseList = expenseList;
+    }
+
+    // Constructeurs
+    public DTOTicket() {
     }
 
     // Getters et Setters
@@ -72,11 +75,14 @@ public class DTOTicket {
         this.assignedEmployee = assignedEmployee;
     }
 
-    public double getExpense() {
-        return expense;
+
+    public List<DTOExpense> getExpenseList() {
+        return expenseList;
     }
 
-    public void setExpense(double expense) {
-        this.expense = expense;
+
+    public void setExpenseList(List<DTOExpense> expenseList) {
+        this.expenseList = expenseList;
     }
+
 }

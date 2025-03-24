@@ -119,7 +119,7 @@
                                     <!-- Customer -->
                                     <label class="m-t-20" for="customerId">Customer:</label>
                                     <div class="input-group">
-                                        <select name="customerId" id="customerId" class="form-control">
+                                        <select name="customerId" id="customerId" class="form-control customerChange">
                                             <option th:each="customer : ${customers}" th:text="${customer.name}" th:value="${customer.customerId}"></option>
                                         </select>
                                     </div>
@@ -130,7 +130,7 @@
                                         <div class="expense-entry">
                                             <label class="m-t-20" for="expenseAmount">Amount:</label>
                                             <div class="input-group">
-                                                <input type="number" step="0.01" name="expenses[0].amount" class="form-control expense-amount" placeholder="Enter amount">
+                                                <input type="number" id="montantAmount" step="0.01" name="expenses[0].amount" class="form-control expense-amount" placeholder="Enter amount">
                                             </div>
 
                                             <label class="m-t-20" for="expenseDescription">Description:</label>
@@ -139,14 +139,14 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" id="add-expense" class="btn btn-secondary m-t-20">Add Expense</button>
+                                    <!-- <button type="button" id="add-expense" class="btn btn-secondary m-t-20">Add Expense</button> -->
                                     <br>
                                     <br>
                                     <!-- Error Message for Budget -->
                                     <div id="budget-error-message" class="alert alert-danger" style="display: none;"></div>
 
                                     <!-- Hidden Field for User Confirmation -->
-                                    <input type="hidden" id="userConfirmation" name="userConfirmation" value="false">
+                                    <!-- <input type="hidden" id="userConfirmation" name="userConfirmation" value="false"> -->
 
                                     <!-- Submit Button -->
                                     <button type="submit" class="btn btn-primary m-t-20">Create Ticket</button>
@@ -213,7 +213,7 @@
             });
 
             // Check budget on amount input
-            $(document).on('input', '.expense-amount', function() {
+            $(document).on('change', '.expense-amount, .customerChange', function() {
                 const customerId = $('#customerId').val();
                 const formData = new FormData(document.getElementById('ticketForm'));
 
@@ -238,9 +238,9 @@
                             cancelButtonText: 'Annuler'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                document.getElementById('userConfirmation').value = 'true';
+                                $('#budget-error-message').text(data.message).show()
                             } else {
-                                document.getElementById('userConfirmation').value = 'false';
+                                document.getElementById('montantAmount').value = '';
                             }
                         });
                     } else if (data.exceedsBudgettaux) {
@@ -256,21 +256,21 @@
                 });
             });
 
-            // Intercept form submission
-            document.getElementById('ticketForm').addEventListener('submit', function(event) {
-                event.preventDefault();
+            // // Intercept form submission
+            // document.getElementById('ticketForm').addEventListener('submit', function(event) {
+            //     event.preventDefault();
 
-                if (document.getElementById('userConfirmation').value === 'true') {
-                    this.submit();
-                } else {
-                    Swal.fire({
-                        title: 'Erreur',
-                        text: "Vous devez confirmer la création du ticket si le budget est dépassé.",
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
+            //     if (document.getElementById('userConfirmation').value === 'true') {
+            //         this.submit();
+            //     } else {
+            //         Swal.fire({
+            //             title: 'Erreur',
+            //             text: "Vous devez confirmer la création du ticket si le budget est dépassé.",
+            //             icon: 'error',
+            //             confirmButtonText: 'OK'
+            //         });
+            //     }
+            // });
         });
     </script>
 </body>
