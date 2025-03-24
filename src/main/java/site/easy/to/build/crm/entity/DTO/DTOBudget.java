@@ -1,19 +1,18 @@
 package site.easy.to.build.crm.entity.DTO;
 
-import java.util.List;
 
 public class DTOBudget {
     private int id;
 
     private String description;
 
-    private Double totaltotalAmount;
+    private Double totalAmount;
     
     private int customer;
 
-    public DTOBudget(int id, Double totaltotalAmount, String description, int customer) {
+    public DTOBudget(int id, Double totalAmount, String description, int customer) {
         this.id = id;
-        this.totaltotalAmount = totaltotalAmount;
+        this.totalAmount = totalAmount;
         this.description = description;
         this.customer = customer;
     }
@@ -45,20 +44,12 @@ public class DTOBudget {
         this.customer = customer;
     }
 
-    public Double getTotaltotalAmount() {
-        return totaltotalAmount;
+    public Double getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setTotaltotalAmount(Double totaltotalAmount) {
-        this.totaltotalAmount = totaltotalAmount;
-    }
-
-    public List<DTOBudget> getBudgetList() {
-        return budgetList;
-    }
-
-    public void setBudgetList(List<DTOBudget> budgetList) {
-        this.budgetList = budgetList;
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
     }
 }
 

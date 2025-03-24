@@ -26,10 +26,8 @@ public class DTOCustomer {
         this.expenseList = expenseList;
     }
 
-
     public DTOCustomer() {
     }
-
 
     public int getId() {
         return id;

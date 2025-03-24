@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import site.easy.to.build.crm.entity.Customer;
+import site.easy.to.build.crm.entity.DTO.DTOBudget;
 import site.easy.to.build.crm.entity.DTO.DTOCustomer;
+import site.easy.to.build.crm.entity.DTO.DTOExpense;
 import site.easy.to.build.crm.service.customer.CustomerService;
 
 @RestController
@@ -38,6 +40,32 @@ public class CustomerApiController {
         dtoCustomer.setPhone(customer.getPhone());
         dtoCustomer.setCountry(customer.getCountry());
         dtoCustomer.setAddress(customer.getAddress());
+        List<DTOBudget> dtoBudgets = customer.getBudgets().stream()
+            .map(expense -> {
+                DTOBudget dtoBudget = new DTOBudget();
+                dtoBudget.setId((int) (long) expense.getId());
+                dtoBudget.setTotalAmount(expense.getTotalAmount());
+                dtoBudget.setDescription(expense.getDescription());
+                dtoBudget.setCustomer(expense.getCustomer().getCustomerId());
+                return dtoBudget;
+            })
+            .collect(Collectors.toList());
+
+        // Injecter la liste de DTOExpense dans dtoTicket
+        dtoCustomer.setBudgetList(dtoBudgets);
+        List<DTOExpense> dtoExpenses = customer.getExpenses().stream()
+            .map(expense -> {
+                DTOExpense dtoExpense = new DTOExpense();
+                dtoExpense.setId((int) (long) expense.getId());
+                dtoExpense.setAmount(expense.getAmount());
+                dtoExpense.setDescription(expense.getDescription());
+                dtoExpense.setCustomer(expense.getCustomer().getCustomerId());
+                return dtoExpense;
+            })
+            .collect(Collectors.toList());
+
+        // Injecter la liste de DTOExpense dans dtoTicket
+        dtoCustomer.setExpenseList(dtoExpenses);
         return dtoCustomer;
     }
 }
