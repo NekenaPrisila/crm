@@ -1,6 +1,7 @@
 package site.easy.to.build.crm.entity.DTO;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class DTOLead {
     private int id;
@@ -8,16 +9,16 @@ public class DTOLead {
     private String customer;
     private String assignedEmployee;
     private LocalDateTime createdAt;
-    private double expense;
+    private List<DTOExpense> expenseList;
 
     public DTOLead(int id, String status, String customer, String assignedEmployee, LocalDateTime createdAt,
-            double expense) {
+            List<DTOExpense> expenseList) {
         this.id = id;
         this.status = status;
         this.customer = customer;
         this.assignedEmployee = assignedEmployee;
         this.createdAt = createdAt;
-        this.expense = expense;
+        this.expenseList = expenseList;
     }
 
     // Constructeurs
@@ -56,20 +57,20 @@ public class DTOLead {
     public void setAssignedEmployee(String assignedEmployee) {
         this.assignedEmployee = assignedEmployee;
     }
-
-    public double getExpense() {
-        return expense;
-    }
-
-    public void setExpense(double expense) {
-        this.expense = expense;
-    }
-
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<DTOExpense> getExpenseList() {
+        return expenseList;
+    }
+
+    public void setExpenseList(List<DTOExpense> expenseList) {
+        this.expenseList = expenseList;
     }
 }

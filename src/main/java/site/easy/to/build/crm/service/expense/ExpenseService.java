@@ -27,4 +27,17 @@ public class ExpenseService {
         return expenseRepository.getTotalExpenseByCustomer(customer);
     }
 
+    // Méthode pour mettre à jour une dépense
+    public Expense updateExpense(int idExpense, Expense updatedExpense) {
+        Expense existingExpense = expenseRepository.findById((long) idExpense).orElse(null);
+        if (existingExpense != null) {
+            // Mettre à jour les champs de la dépense existante
+            existingExpense.setAmount(updatedExpense.getAmount());
+            existingExpense.setDescription(updatedExpense.getDescription());
+            existingExpense.setCustomer(updatedExpense.getCustomer());
+            return expenseRepository.save(existingExpense);
+        }
+        return null; // Retourne null si la dépense n'existe pas
+    }
+
 }
