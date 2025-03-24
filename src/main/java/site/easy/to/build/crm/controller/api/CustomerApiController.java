@@ -50,7 +50,6 @@ public class CustomerApiController {
                 return dtoBudget;
             })
             .collect(Collectors.toList());
-
         // Injecter la liste de DTOExpense dans dtoTicket
         dtoCustomer.setBudgetList(dtoBudgets);
         List<DTOExpense> dtoExpenses = customer.getExpenses().stream()
