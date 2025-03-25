@@ -22,12 +22,10 @@ public class LoginApiController {
                 return ResponseEntity.badRequest().body(false);
             }
 
-            System.out.println("email : " + email);
-
-            boolean exists = true;
-            User userconnecter = userRepository.findByEmail(email);
-            System.out.println("user " + userconnecter.getEmail());
+            boolean exists = false;
+            User userconnecter = userRepository.findManagerByEmail(email);
             if (userconnecter != null) {
+                System.out.println("user " + userconnecter.getEmail());
                 exists = true; 
             }
             

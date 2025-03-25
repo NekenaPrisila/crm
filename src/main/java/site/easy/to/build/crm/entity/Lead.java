@@ -64,6 +64,27 @@ public class Lead {
     @OneToMany(mappedBy = "lead", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
 
+    public Lead(@NotBlank(message = "Name is required") String name,
+            @NotBlank(message = "Status is required") @Pattern(regexp = "^(meeting-to-schedule|scheduled|archived|success|assign-to-sales)$", message = "Invalid status") String status,
+            String phone, String meetingId, Boolean googleDrive, String googleDriveFolderId,
+            List<LeadAction> leadActions, List<File> files, List<GoogleDriveFile> googleDriveFiles, User manager,
+            User employee, Customer customer, LocalDateTime createdAt, List<Expense> expenses) {
+        this.name = name;
+        this.status = status;
+        this.phone = phone;
+        this.meetingId = meetingId;
+        this.googleDrive = googleDrive;
+        this.googleDriveFolderId = googleDriveFolderId;
+        this.leadActions = leadActions;
+        this.files = files;
+        this.googleDriveFiles = googleDriveFiles;
+        this.manager = manager;
+        this.employee = employee;
+        this.customer = customer;
+        this.createdAt = createdAt;
+        this.expenses = expenses;
+    }
+
     public Lead() {
     }
 
