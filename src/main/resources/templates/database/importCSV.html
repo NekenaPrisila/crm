@@ -30,11 +30,44 @@
                                 <h4 class="card-title">Import from CSV</h4>
                                 <form th:action="@{/import/csv-import}" method="post" enctype="multipart/form-data">
                                     <div class="form-group">
-                                        <label for="csvFile">CSV File:</label>
-                                        <input type="file" id="csvFile" name="file" class="form-control" accept=".csv" required>
+                                        <label for="csvFile2">CSV File Customer:</label>
+                                        <input type="file" id="csvFile2" name="fileCustomer" class="form-control" accept=".csv">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="csvFile3">CSV File Budget:</label>
+                                        <input type="file" id="csvFile3" name="fileBudget" class="form-control" accept=".csv">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="csvFile1">CSV File Ticket/Lead:</label>
+                                        <input type="file" id="csvFile1" name="fileTicketLead" class="form-control" accept=".csv">
                                     </div>
                                     <button type="submit" class="btn btn-primary">Import CSV</button>
                                 </form>
+                                <div th:if="${errors != null and !errors.empty}" class="alert alert-danger">
+                                    <h5>Erreurs d'importation</h5>
+                                    <p th:if="${importedCount != null}">
+                                        <span th:text="${importedCount}">X</span> enregistrements importés,
+                                        <span th:text="${errors.size()}">X</span> erreurs.
+                                    </p>
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Fichier</th>
+                                                <th>Ligne</th>
+                                                <th>Champ</th>
+                                                <th>Erreur</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="error : ${errors}">
+                                                <td th:text="${error.fileName}">file.csv</td>
+                                                <td th:text="${error.lineNumber}">1</td>
+                                                <td th:text="${error.fieldName}">field</td>
+                                                <td th:text="${error.errorMessage}">message</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                         <div class="card">

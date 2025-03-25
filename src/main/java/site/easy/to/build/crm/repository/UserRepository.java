@@ -2,6 +2,7 @@ package site.easy.to.build.crm.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import site.easy.to.build.crm.entity.User;
 
@@ -27,4 +28,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     long count();
 
     public List<User> findTopNByOrderByCreatedAtDesc(int limit, Pageable pageable);
+
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE u.email = :email AND r.name = 'ROLE_MANAGER'")
+    public User findManagerByEmail(String email);
 }
