@@ -1,5 +1,6 @@
 package site.easy.to.build.crm.entity.csv;
 
+import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 
 public class BudgetCsvDto {
@@ -28,4 +29,16 @@ public class BudgetCsvDto {
         this.Budget = budget;
     }
 
+    @AssertTrue(message = "Budget amount must be positive")
+    public boolean isBudget() {
+        if (Budget == null || Budget.isEmpty()) {
+            return true; // La validation @NotBlank gérera ce cas
+        }
+        try {
+            String normalized = Budget.replace(",", "");
+            return new BigDecimal(normalized).compareTo(BigDecimal.ZERO) > 0;
+        } catch (NumberFormatException e) {
+            return false; // La validation @Pattern gérera normalement ce cas
+        }
+    }
 }

@@ -43,6 +43,7 @@
                                     </div>
                                     <button type="submit" class="btn btn-primary">Import CSV</button>
                                 </form>
+                                <br>
                                 <div th:if="${errors != null and !errors.empty}" class="alert alert-danger">
                                     <h5>Erreurs d'importation</h5>
                                     <p th:if="${importedCount != null}">

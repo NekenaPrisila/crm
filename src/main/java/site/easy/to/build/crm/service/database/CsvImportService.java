@@ -298,65 +298,82 @@ public class CsvImportService {
     private CsvImportResult insertTicketsLeads(Reader reader, String fileName, User user, Faker faker) {
         List<Object> entities = new ArrayList<>();
         List<CsvValidationError> errors = new ArrayList<>();
-
+    
         CsvToBean<TicketLeadCsvDto> csvToBean = new CsvToBeanBuilder<TicketLeadCsvDto>(reader)
             .withType(TicketLeadCsvDto.class)
             .withIgnoreLeadingWhiteSpace(true)
             .build();
-
+    
         List<TicketLeadCsvDto> dtos = csvToBean.parse();
-
+    
         for (int i = 0; i < dtos.size(); i++) {
             int lineNumber = i + 2;
             TicketLeadCsvDto dto = dtos.get(i);
-
+    
             try {
-                // Rechercher le customer (doit exister après validation)
                 Customer customer = customerRepository.findByEmail(dto.getCustomerEmail());
                 if (customer == null) {
                     throw new RuntimeException("Customer not found: " + dto.getCustomerEmail());
                 }
-
+    
                 if ("lead".equalsIgnoreCase(dto.getType())) {
+                    // Étape 1: Créer et sauvegarder le Lead sans Expense
                     Lead lead = new Lead();
                     lead.setName(dto.getSubjectOrName());
                     lead.setStatus(dto.getStatus());
+                    lead.setPhone("+261 " + faker.phoneNumber().subscriberNumber(8));
                     lead.setCustomer(customer);
                     lead.setCreatedAt(LocalDateTime.now());
-
+                    lead.setEmployee(user);
+                    
+                    // Sauvegarde initiale pour obtenir l'ID
+                    lead = leadRepository.save(lead);
+                    
+                    // Étape 2: Créer l'Expense si nécessaire
                     if (dto.getExpense() != null) {
                         Expense expense = new Expense();
                         expense.setAmount(new BigDecimal(dto.getExpense().replace(",", ".")).doubleValue());
                         expense.setDescription("From CSV import");
                         expense.setLead(lead);
+                        expense.setCustomer(customer); // Associer aussi le customer
+                        
+                        // Ajouter à la collection et sauvegarder
                         lead.getExpenses().add(expense);
+                        lead = leadRepository.save(lead); // Mise à jour
                     }
-
-                    entities.add(leadRepository.save(lead));
+                    
+                    entities.add(lead);
                 } else {
+                    // Même logique pour les Tickets
                     Ticket ticket = new Ticket();
                     ticket.setSubject(dto.getSubjectOrName());
                     ticket.setStatus(dto.getStatus());
                     ticket.setPriority("medium");
                     ticket.setCustomer(customer);
                     ticket.setCreatedAt(LocalDateTime.now());
-
+                    ticket.setEmployee(user);
+                    
+                    // Sauvegarde initiale
+                    ticket = ticketRepository.save(ticket);
+                    
                     if (dto.getExpense() != null) {
                         Expense expense = new Expense();
                         expense.setAmount(new BigDecimal(dto.getExpense().replace(",", ".")).doubleValue());
                         expense.setDescription("From CSV import");
                         expense.setTicket(ticket);
+                        expense.setCustomer(customer);
+                        
                         ticket.getExpenses().add(expense);
+                        ticket = ticketRepository.save(ticket);
                     }
-
-                    entities.add(ticketRepository.save(ticket));
+                    
+                    entities.add(ticket);
                 }
             } catch (Exception e) {
                 errors.add(new CsvValidationError(fileName, lineNumber, "Processing", e.getMessage()));
-                throw new RuntimeException("Error saving tickets/leads", e); // Rollback transaction
+                throw new RuntimeException("Error saving tickets/leads", e);
             }
         }
-
         return new CsvImportResult(entities, errors);
     }
 }

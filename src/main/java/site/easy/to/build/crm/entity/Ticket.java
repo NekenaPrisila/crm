@@ -53,10 +53,10 @@ public class Ticket {
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
 
-    public Ticket() {
-    }
-
-    public Ticket(String subject, String description, String status, String priority, User manager, User employee, Customer customer, LocalDateTime createdAt) {
+    public Ticket(@NotBlank(message = "Subject is required") String subject, String description,
+            @NotBlank(message = "Status is required") @Pattern(regexp = "^(open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived)$", message = "Invalid status") String status,
+            @NotBlank(message = "Priority is required") @Pattern(regexp = "^(low|medium|high|closed|urgent|critical)$", message = "Invalid priority") String priority,
+            User manager, User employee, Customer customer, LocalDateTime createdAt, List<Expense> expenses) {
         this.subject = subject;
         this.description = description;
         this.status = status;
@@ -65,7 +65,12 @@ public class Ticket {
         this.employee = employee;
         this.customer = customer;
         this.createdAt = createdAt;
+        this.expenses = expenses;
     }
+
+    public Ticket() {
+    }
+
 
     public int getTicketId() {
         return ticketId;
