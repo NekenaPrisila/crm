@@ -1,5 +1,7 @@
 package site.easy.to.build.crm.entity.csv;
 
+import java.math.BigDecimal;
+
 import jakarta.validation.constraints.*;
 
 public class TicketLeadCsvDto {
@@ -59,6 +61,19 @@ public class TicketLeadCsvDto {
 
     public void setExpense(String expense) {
         this.expense = expense;
+    }
+
+    @AssertTrue(message = "Expense must be positive")
+    public boolean isExpensePositive() {
+        if (expense == null || expense.isEmpty()) {
+            return true;
+        }
+        try {
+            String normalized = expense.replace(",", "");
+            return new BigDecimal(normalized).compareTo(BigDecimal.ZERO) >= 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
 }
