@@ -114,8 +114,7 @@ public class TicketApiController {
             return ResponseEntity.notFound().build();
         }
 
-        Integer expenseInt = (Integer) requestBody.get("expense");
-        Double newAmount = expenseInt.doubleValue(); // Conversion explicite
+        Double newAmount = (Double) requestBody.get("expense");
 
         // Trouver la première dépense associée au ticket (ou une logique spécifique si nécessaire)
         Expense expenseToUpdate = ticket.getExpenses().stream()

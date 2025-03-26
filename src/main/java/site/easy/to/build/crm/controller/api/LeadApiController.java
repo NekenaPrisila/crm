@@ -116,8 +116,7 @@ public class LeadApiController {
             return ResponseEntity.notFound().build();
         }
 
-        Integer expenseInt = (Integer) requestBody.get("expense");
-        Double newAmount = expenseInt.doubleValue(); // Conversion explicite
+        Double newAmount = (Double) requestBody.get("expense"); // Conversion explicite
 
         // Trouver la première dépense associée au lead (ou une logique spécifique si nécessaire)
         Expense expenseToUpdate = lead.getExpenses().stream()
