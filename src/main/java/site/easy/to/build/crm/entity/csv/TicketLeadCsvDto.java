@@ -1,7 +1,6 @@
 package site.easy.to.build.crm.entity.csv;
 
 import java.math.BigDecimal;
-
 import jakarta.validation.constraints.*;
 
 public class TicketLeadCsvDto {
@@ -19,8 +18,9 @@ public class TicketLeadCsvDto {
     @NotBlank(message = "Status is required")
     private String status;
 
-    @Pattern(regexp = "^[0-9]+(,[0-9]{3})*(\\.[0-9]{1,2})?$", 
-             message = "Invalid expense format (ex: 150000 or 68500.87)")
+    @NotBlank(message = "Budget amount is required")
+    @Pattern(regexp = "^\"?[0-9]+(?:[,.][0-9]{3})*(?:[.,][0-9]{1,2})?\"?$", 
+             message = "Invalid expense format (ex: 150000, 350000.23, \"350000,23\" or 1,500,000)")
     private String expense;
 
     public String getCustomerEmail() {
@@ -60,20 +60,31 @@ public class TicketLeadCsvDto {
     }
 
     public void setExpense(String expense) {
-        this.expense = expense;
+        // Nettoie la valeur en supprimant les guillemets et espaces
+        this.expense = expense != null ? expense.trim().replace("\"", "") : null;
     }
 
-    @AssertTrue(message = "Expense must be positive")
-    public boolean isExpensePositive() {
-        if (expense == null || expense.isEmpty()) {
-            return true;
-        }
+    @AssertTrue(message = "Expense must be positive or zero")
+    public boolean isExpenseValid() {
         try {
-            String normalized = expense.replace(",", "");
-            return new BigDecimal(normalized).compareTo(BigDecimal.ZERO) >= 0;
+            BigDecimal value = getExpenseValue();
+            return value.compareTo(BigDecimal.ZERO) >= 0;
         } catch (NumberFormatException e) {
             return false;
         }
     }
 
+    public BigDecimal getExpenseValue() {
+        if (expense == null || expense.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            String normalized = expense.replace("\"", "")
+                                      .replace(".", "")
+                                      .replace(",", ".");
+            return new BigDecimal(normalized);
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
+    }
 }
