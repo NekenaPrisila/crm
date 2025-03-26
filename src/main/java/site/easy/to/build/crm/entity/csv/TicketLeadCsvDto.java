@@ -92,4 +92,16 @@ public class TicketLeadCsvDto {
             return BigDecimal.ZERO;
         }
     }
+
+    @AssertTrue(message = "Invalid status for lead")
+    public boolean isLeadStatusValid() {
+        return !"lead".equalsIgnoreCase(type) || 
+               status.matches("^(meeting-to-schedule|scheduled|archived|success|assign-to-sales)$");
+    }
+
+    @AssertTrue(message = "Invalid status for ticket")
+    public boolean isTicketStatusValid() {
+        return !"ticket".equalsIgnoreCase(type) || 
+               status.matches("^(open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived)$");
+    }
 }

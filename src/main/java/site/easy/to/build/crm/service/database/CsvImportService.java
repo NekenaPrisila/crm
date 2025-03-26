@@ -15,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -409,4 +407,14 @@ public class CsvImportService {
         }
         return new CsvImportResult(entities, errors);
     }
+
+    // Méthode utilitaire pour parser les nombres
+    // private double parseDecimal(String value) {
+    //     try {
+    //         // Gère les formats "1,8" ou "1.8"
+    //         return new BigDecimal(value.replace(",", ".")).doubleValue();
+    //     } catch (NumberFormatException e) {
+    //         throw new IllegalArgumentException("Invalid number format: " + value);
+    //     }
+    // }
 }
