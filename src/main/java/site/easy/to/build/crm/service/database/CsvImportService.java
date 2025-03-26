@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -111,6 +113,27 @@ public class CsvImportService {
         return new CsvImportResult(allEntities, allErrors);
     }
 
+    // private boolean validateCsvHeaders(Reader reader, String[] expectedHeaders, String fileName) throws IOException {
+    //     try (BufferedReader br = new BufferedReader(reader)) {
+    //         String firstLine = br.readLine();
+    //         if (firstLine == null) {
+    //             throw new IOException("Fichier CSV vide");
+    //         }
+            
+    //         String[] actualHeaders = firstLine.split(",");
+    //         if (actualHeaders.length != expectedHeaders.length) {
+    //             return false;
+    //         }
+            
+    //         for (int i = 0; i < expectedHeaders.length; i++) {
+    //             if (!expectedHeaders[i].equalsIgnoreCase(actualHeaders[i].trim())) {
+    //                 return false;
+    //             }
+    //         }
+    //         return true;
+    //     }
+    // }
+
     // Méthodes de validation et préparation
     private CsvImportResult validateAndPrepareCustomers(Reader reader, String fileName, User user, Faker faker, Map<String, Customer> tempCustomers) {
         List<CsvValidationError> errors = new ArrayList<>();
@@ -126,6 +149,16 @@ public class CsvImportService {
         for (int i = 0; i < dtos.size(); i++) {
             int lineNumber = i + 2;
             CustomerCsvDto dto = dtos.get(i);
+
+            if (tempCustomers.containsKey(dto.getCustomer_email())) {
+                errors.add(new CsvValidationError(
+                    fileName, 
+                    lineNumber, 
+                    "customer_email", 
+                    "Email en double dans le fichier CSV"
+                ));
+                continue;
+            }
 
             Set<ConstraintViolation<CustomerCsvDto>> violations = validator.validate(dto);
             if (!violations.isEmpty()) {
