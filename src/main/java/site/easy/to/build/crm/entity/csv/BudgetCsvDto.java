@@ -9,8 +9,8 @@ public class BudgetCsvDto {
     private String customer_email;
 
     @NotBlank(message = "Budget amount is required")
-    @Pattern(regexp = "^[0-9]+(,[0-9]{3})*(\\.[0-9]{1,2})?$", 
-             message = "Invalid amount format (ex: 150000 or 68500.87)")
+    @Pattern(regexp = "^\"?[0-9]+(?:[,.][0-9]{3})*(?:[.,][0-9]{1,2})?\"?$", 
+             message = "Invalid expense format (ex: 150000, 350000.23, \"350000,23\" or 1,500,000)")
     private String Budget;
 
     public String getCustomerEmail() {
@@ -26,19 +26,31 @@ public class BudgetCsvDto {
     }
 
     public void setBudget(String budget) {
-        this.Budget = budget;
+        // Nettoie la valeur en supprimant les guillemets et espaces
+        this.Budget = budget != null ? budget.trim().replace("\"", "") : null;
     }
 
     @AssertTrue(message = "Budget amount must be positive")
-    public boolean isBudget() {
+    public boolean isBudgetValid() {
+        try {
+            BigDecimal value = getBudgetValue();
+            return value.compareTo(BigDecimal.ZERO) >= 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public BigDecimal getBudgetValue() {
         if (Budget == null || Budget.isEmpty()) {
-            return true; // La validation @NotBlank gérera ce cas
+            return BigDecimal.ZERO;
         }
         try {
-            String normalized = Budget.replace(",", "");
-            return new BigDecimal(normalized).compareTo(BigDecimal.ZERO) > 0;
+            String normalized = Budget.replace("\"", "")
+                                    .replace(".", "")
+                                    .replace(",", ".");
+            return new BigDecimal(normalized);
         } catch (NumberFormatException e) {
-            return false; // La validation @Pattern gérera normalement ce cas
+            return BigDecimal.ZERO;
         }
     }
 }

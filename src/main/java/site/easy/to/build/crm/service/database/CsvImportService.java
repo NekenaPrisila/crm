@@ -280,7 +280,7 @@ public class CsvImportService {
 
                 Budget budget = new Budget();
                 budget.setCustomer(customer);
-                budget.setTotalAmount(new BigDecimal(dto.getBudget().replace(",", "")).doubleValue());
+                budget.setTotalAmount(new BigDecimal(dto.getBudget().replace(",", ".")).doubleValue());
                 budget.setName("Budget " + customer.getName() + " " + LocalDateTime.now().getYear());
                 budget.setDescription("Budget importé pour " + customer.getName() + " - " + 
                                    LocalDateTime.now().getYear());

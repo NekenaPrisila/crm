@@ -267,6 +267,9 @@ public class LeadController {
         lead.setCreatedAt(LocalDateTime.now());
 
         for (Expense expense : lead.getExpenses()) {
+            if (expense.getAmount() == null) {
+                expense.setAmount(0.0);
+            }
             expense.setLead(lead);
             expense.setCustomer(customer);
         }

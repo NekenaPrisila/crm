@@ -237,6 +237,9 @@ public class TicketController {
 
         // Configurer les dépenses
         for (Expense expense : ticket.getExpenses()) {
+            if (expense.getAmount() == null) {
+                expense.setAmount(0.0);
+            }
             expense.setTicket(ticket);
             expense.setCustomer(customer);
         }
