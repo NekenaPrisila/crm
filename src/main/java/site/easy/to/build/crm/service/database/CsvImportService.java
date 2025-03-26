@@ -204,6 +204,10 @@ public class CsvImportService {
 
         List<TicketLeadCsvDto> dtos = csvToBean.parse();
 
+        for (TicketLeadCsvDto ticketLeadCsvDto : dtos) {
+            System.out.println("valeurr" + ticketLeadCsvDto.getExpense());
+        }
+
         for (int i = 0; i < dtos.size(); i++) {
             int lineNumber = i + 2;
             TicketLeadCsvDto dto = dtos.get(i);

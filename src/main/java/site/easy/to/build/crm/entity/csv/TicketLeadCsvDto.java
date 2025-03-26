@@ -18,7 +18,7 @@ public class TicketLeadCsvDto {
     @NotBlank(message = "Status is required")
     private String status;
 
-    @NotBlank(message = "Budget amount is required")
+    // @NotBlank(message = "Expense amount is required")
     @Pattern(regexp = "^\"?[0-9]+(?:[,.][0-9]{3})*(?:[.,][0-9]{1,2})?\"?$", 
              message = "Invalid expense format (ex: 150000, 350000.23, \"350000,23\" or 1,500,000)")
     private String expense;
@@ -61,7 +61,11 @@ public class TicketLeadCsvDto {
 
     public void setExpense(String expense) {
         // Nettoie la valeur en supprimant les guillemets et espaces
-        this.expense = expense != null ? expense.trim().replace("\"", "") : null;
+        if (expense == null || expense.trim().isEmpty()) {
+            this.expense = "0";
+        } else {
+            this.expense = expense != null ? expense.trim().replace("\"", "") : null;
+        }
     }
 
     @AssertTrue(message = "Expense must be positive or zero")
@@ -76,6 +80,7 @@ public class TicketLeadCsvDto {
 
     public BigDecimal getExpenseValue() {
         if (expense == null || expense.isEmpty()) {
+            setExpense(expense);
             return BigDecimal.ZERO;
         }
         try {
