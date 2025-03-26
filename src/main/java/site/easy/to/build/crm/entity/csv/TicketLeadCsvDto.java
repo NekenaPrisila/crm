@@ -18,53 +18,71 @@ public class TicketLeadCsvDto {
     @NotBlank(message = "Status is required")
     private String status;
 
-    // @NotBlank(message = "Expense amount is required")
     @Pattern(regexp = "^\"?[0-9]+(?:[,.][0-9]{3})*(?:[.,][0-9]{1,2})?\"?$", 
              message = "Invalid expense format (ex: 150000, 350000.23, \"350000,23\" or 1,500,000)")
     private String expense;
 
+    // Getters
     public String getCustomerEmail() {
         return customer_email;
-    }
-
-    public void setCustomerEmail(String customerEmail) {
-        this.customer_email = customerEmail;
     }
 
     public String getSubjectOrName() {
         return subject_or_name;
     }
 
-    public void setSubjectOrName(String subjectOrName) {
-        this.subject_or_name = subjectOrName;
-    }
-
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public String getExpense() {
         return expense;
     }
 
+    // Setters avec normalisation automatique
+    public void setCustomerEmail(String customerEmail) {
+        this.customer_email = customerEmail;
+    }
+
+    public void setSubjectOrName(String subjectOrName) {
+        this.subject_or_name = subjectOrName;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+        // Quand le type change, on normalise le statut
+        normalizeStatus();
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+        normalizeStatus();
+    }
+
     public void setExpense(String expense) {
-        // Nettoie la valeur en supprimant les guillemets et espaces
         if (expense == null || expense.trim().isEmpty()) {
             this.expense = "0";
         } else {
             this.expense = expense != null ? expense.trim().replace("\"", "") : null;
+        }
+    }
+
+    // Méthodes de validation
+    public BigDecimal getExpenseValue() {
+        if (expense == null || expense.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            String normalized = expense.replace("\"", "")
+                                    .replace(".", "")
+                                    .replace(",", ".");
+            return new BigDecimal(normalized);
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
         }
     }
 
@@ -78,30 +96,20 @@ public class TicketLeadCsvDto {
         }
     }
 
-    public BigDecimal getExpenseValue() {
-        if (expense == null || expense.isEmpty()) {
-            setExpense(expense);
-            return BigDecimal.ZERO;
+    // Normalisation du statut
+    private void normalizeStatus() {
+        if (type == null || status == null) {
+            return;
         }
-        try {
-            String normalized = expense.replace("\"", "")
-                                      .replace(".", "")
-                                      .replace(",", ".");
-            return new BigDecimal(normalized);
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
+
+        if ("lead".equalsIgnoreCase(type)) {
+            if (!status.matches("^(meeting-to-schedule|scheduled|archived|success|assign-to-sales)$")) {
+                this.status = "meeting-to-schedule";
+            }
+        } else if ("ticket".equalsIgnoreCase(type)) {
+            if (!status.matches("^(open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived)$")) {
+                this.status = "open";
+            }
         }
-    }
-
-    @AssertTrue(message = "Invalid status for lead")
-    public boolean isLeadStatusValid() {
-        return !"lead".equalsIgnoreCase(type) || 
-               status.matches("^(meeting-to-schedule|scheduled|archived|success|assign-to-sales)$");
-    }
-
-    @AssertTrue(message = "Invalid status for ticket")
-    public boolean isTicketStatusValid() {
-        return !"ticket".equalsIgnoreCase(type) || 
-               status.matches("^(open|assigned|on-hold|in-progress|resolved|closed|reopened|pending-customer-response|escalated|archived)$");
     }
 }
