@@ -2,6 +2,7 @@ package site.easy.to.build.crm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -10,16 +11,23 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import site.easy.to.build.crm.entity.Budget;
 import site.easy.to.build.crm.entity.Customer;
 import site.easy.to.build.crm.entity.CustomerLoginInfo;
+import site.easy.to.build.crm.entity.Expense;
+import site.easy.to.build.crm.entity.Lead;
 import site.easy.to.build.crm.entity.OAuthUser;
+import site.easy.to.build.crm.entity.Ticket;
 import site.easy.to.build.crm.entity.User;
 import site.easy.to.build.crm.google.service.acess.GoogleAccessService;
 import site.easy.to.build.crm.google.service.gmail.GoogleGmailApiService;
 import site.easy.to.build.crm.service.contract.ContractService;
 import site.easy.to.build.crm.service.customer.CustomerLoginInfoService;
 import site.easy.to.build.crm.service.customer.CustomerService;
+import site.easy.to.build.crm.service.database.CustomerImportService;
 import site.easy.to.build.crm.service.lead.LeadService;
 import site.easy.to.build.crm.service.ticket.TicketService;
 import site.easy.to.build.crm.service.user.UserService;
@@ -28,8 +36,18 @@ import site.easy.to.build.crm.util.AuthorizationUtil;
 import site.easy.to.build.crm.util.EmailTokenUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper; 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.http.*;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Controller
 @RequestMapping("/employee/customer")
 public class CustomerController {
@@ -209,5 +227,136 @@ public class CustomerController {
         return "redirect:/employee/customer/my-customers";
     }
 
+    @PostMapping("/export-customer/{id}")
+    @Transactional
+    public ResponseEntity<String> exportCustomer(@PathVariable("id") int id, Authentication authentication) throws Exception {
+    try {
+        int userId = authenticationUtils.getLoggedInUserId(authentication);
+        User user = userService.findById(userId);
+            
+        if(user.isInactiveUser()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Account inactive");
+        }
+            
+        if(!AuthorizationUtil.hasRole(authentication,"ROLE_MANAGER")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized access");
+        }
+
+        Customer customer = customerService.findByCustomerId(id);
+        if (customer == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Create a deep copy of the customer to modify email without affecting original
+        Customer customerCopy = new Customer();
+        BeanUtils.copyProperties(customer, customerCopy);
+        customerCopy.setCustomerId(null); // Avoid ID conflict if imported
+        customerCopy.setEmail("Copy_" + customer.getEmail());
+            
+        // Handle relationships
+        if (customer.getBudgets() != null) {
+            List<Budget> budgetCopies = customer.getBudgets().stream().map(budget -> {
+                Budget budgetCopy = new Budget();
+                BeanUtils.copyProperties(budget, budgetCopy);
+                budgetCopy.setId(null);
+                budgetCopy.setCustomer(customerCopy);
+                return budgetCopy;
+            }).collect(Collectors.toList());
+            customerCopy.setBudgets(budgetCopies);
+        }
+
+        // Copie des dépenses avec leurs relations
+        if (customer.getExpenses() != null) {
+            System.out.println("isanyyy " + customer.getExpenses().size());
+            List<Expense> expenseCopies = customer.getExpenses().stream().map(expense -> {
+                Expense expenseCopy = new Expense();
+                BeanUtils.copyProperties(expense, expenseCopy);
+                expenseCopy.setId(null);
+                    
+                if (expense.getTicket() != null) {
+                    Ticket ticketCopy = new Ticket();
+                    BeanUtils.copyProperties(expense.getTicket(), ticketCopy);
+                    ticketCopy.setTicketId(0);
+                    // Ajoutez cette ligne pour éviter les références circulaires :
+                    ticketCopy.setCustomer(null);
+                    ticketCopy.setExpenses(null);
+                    expenseCopy.setTicket(ticketCopy);
+                }
+                    
+                if (expense.getLead() != null) {
+                    Lead leadCopy = new Lead();
+                    BeanUtils.copyProperties(expense.getLead(), leadCopy);
+                    leadCopy.setLeadId(0);
+                    // Ajoutez cette ligne :
+                    leadCopy.setCustomer(null);
+                    leadCopy.setExpenses(null);
+                    expenseCopy.setLead(leadCopy);
+                }
+                    
+                expenseCopy.setCustomer(customerCopy);
+                return expenseCopy;
+            }).collect(Collectors.toList());
+            customerCopy.setExpenses(expenseCopies);
+        }
+
+        // Configuration de ObjectMapper
+        ObjectMapper om = new ObjectMapper();
+        om.registerModule(new JavaTimeModule());
+        om.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            
+        // Ignorer les propriétés Hibernate et circulaires
+        om.addMixIn(Object.class, IgnoreHibernateProperties.class);
+        om.addMixIn(Customer.class, IgnoreCustomerProperties.class);
+        om.addMixIn(Ticket.class, IgnoreTicketProperties.class);
+        om.addMixIn(Lead.class, IgnoreLeadProperties.class);
+        om.addMixIn(Expense.class, IgnoreHibernateProperties.class);
+
+        // Génération du JSON
+        String json = om.writeValueAsString(customerCopy);
+
+        // Retourner la réponse
+        String fileName = "customer_export_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".json";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(json);
+
+        } catch (Exception e) {
+            throw e;
+            // return ResponseEntity.internalServerError().body("Error exporting customer");
+        }
+    }
+
+    // MixIn classes to handle Hibernate and circular references
+    @JsonIgnoreProperties({
+        "hibernateLazyInitializer", 
+        "handler", 
+        "persistentBag",
+        "$$_hibernate_interceptor",
+        "customer"
+    })
+    abstract class IgnoreHibernateProperties {}
+    @JsonIgnoreProperties({
+        "customerLoginInfo",
+        "user"
+    })
+    abstract class IgnoreCustomerProperties {}
+    @JsonIgnoreProperties({
+        "expenses",
+        "customer",
+        "manager",
+        "employee"
+    })
+    abstract class IgnoreTicketProperties {}
+    @JsonIgnoreProperties({
+        "expenses",
+        "customer",
+        "leadActions",
+        "files",
+        "googleDriveFiles",
+        "manager",
+        "employee"
+    })
+    abstract class IgnoreLeadProperties {}
 
 }

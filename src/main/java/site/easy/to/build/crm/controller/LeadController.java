@@ -477,7 +477,7 @@ public class LeadController {
             return "lead/update-lead";
         }
 
-        Lead prevLead = leadService.findByLeadId(lead.getLeadId());
+        Lead prevLead = leadService.findByLeadId((int) lead.getLeadId());
         Lead originalLead = new Lead();
         BeanUtils.copyProperties(prevLead,originalLead);
         List<File> oldFiles = fileService.findByLeadId(lead.getLeadId());
